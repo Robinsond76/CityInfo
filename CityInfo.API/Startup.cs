@@ -30,6 +30,8 @@ namespace CityInfo.API
                 app.UseExceptionHandler();
             }
 
+            app.UseStatusCodePages(); //Status code page middleware
+
             app.UseMvc(); ///Note that for ASP.NET Core 3.0+, it's another middleware
 
            
