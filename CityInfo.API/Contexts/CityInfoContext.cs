@@ -16,7 +16,7 @@ namespace CityInfo.API.Contexts
         public CityInfoContext(DbContextOptions<CityInfoContext> options)
             : base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
 
         //One way to connect to the database
