@@ -22,7 +22,6 @@ namespace CityInfo.API.Services
             return _context.Cities.OrderBy(c => c.Name).ToList();
         }
 
-
         public City GetCity(int cityId, bool includePointsOfInterest)
         {
             if (includePointsOfInterest)
@@ -33,7 +32,6 @@ namespace CityInfo.API.Services
 
             return _context.Cities.Where(c => c.Id == cityId).FirstOrDefault();
         }
-
 
         public PointOfInterest GetPointOfInterestForCity(int cityId, int pointOfInterestId)
         {
@@ -51,5 +49,18 @@ namespace CityInfo.API.Services
         {
             return _context.Cities.Any(c => c.Id == cityId);
         }
+
+        public void AddPointOfInterestForCity(int cityId, PointOfInterest pointOfInterest)
+        {
+            var city = GetCity(cityId, false);
+            city.PointsOfInterest.Add(pointOfInterest);
+        }
+
+        public bool Save()
+        {
+            return (_context.SaveChanges() >= 0);
+        }
+
+        
     }
 }

@@ -77,27 +77,23 @@ namespace CityInfo.API.Controllers
                 return BadRequest(ModelState);
 
 
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //if city not found, return 404
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
 
-            //For Demo Purposes, to be improved
-            var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(
-                c => c.PointsOfInterest).Max(p => p.Id);
+            var finalPointOfInterest = _mapper.Map<Entities.PointOfInterest>(pointOfInterest);
 
-            var finalPointOfInterest = new PointOfInterestDto()
-            {
-                Id = ++maxPointOfInterestId,
-                Name = pointOfInterest.Name,
-                Description = pointOfInterest.Description
-            };
+            _cityInfoRepository.AddPointOfInterestForCity(cityId, finalPointOfInterest);
+           
+            _cityInfoRepository.Save();
 
-            city.PointsOfInterest.Add(finalPointOfInterest);
+            var createdPointOfInterestToReturn = _mapper
+                .Map<Models.PointOfInterestDto>(finalPointOfInterest);
 
             return CreatedAtRoute(
                 "GetPointOfInterest",
-                new {cityId, id = finalPointOfInterest.Id },
-                finalPointOfInterest);
+                new {cityId, id = createdPointOfInterestToReturn.Id },
+                createdPointOfInterestToReturn);
         }
 
         [HttpPut("{id}")]
