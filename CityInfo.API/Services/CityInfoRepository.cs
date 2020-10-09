@@ -56,6 +56,11 @@ namespace CityInfo.API.Services
             city.PointsOfInterest.Add(pointOfInterest);
         }
 
+        public void UpdatePointOfInterestForCity(int cityId, PointOfInterest pointOfInterest)
+        {
+            // ghost place holder method as not necessary for EF Core
+        }
+
         public bool Save()
         {
             return (_context.SaveChanges() >= 0);

@@ -111,20 +111,32 @@ namespace CityInfo.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //Find the city
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //if city not found, return 404
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
 
             //Find Point of Interest
-            var pointOfInterestFromStore = city.PointsOfInterest
-                .FirstOrDefault(p => p.Id == id);
-            if (pointOfInterestFromStore == null)
+            var pointOfInterestEntity = _cityInfoRepository
+                .GetPointOfInterestForCity(cityId, id);
+            if (pointOfInterestEntity == null)
+            {
                 return NotFound();
+            }
 
-            //update Data
-            pointOfInterestFromStore.Name = pointOfInterest.Name;
-            pointOfInterestFromStore.Description = pointOfInterest.Description;
+            //New method from mapper. Here mapper will overwrite the data in the second parameter with data
+            // from the first parameter. AutoMapper will override the values in the destination object with 
+            // those in the source object. As the destination object is an entity tracked by our DBContext, 
+            // it now has a modified state. 
+            _mapper.Map(pointOfInterest, pointOfInterestEntity);
+
+            //So, once we call Save, the changes will effectively be persisted to the database.
+            _cityInfoRepository.Save();
+
+
+            //EF Core tracks it's entities, but if we were to switch repositorys and use a tech that doesn't,
+            //the code would break as it would need some kind of update functionality. As best practice, we implement
+            //here an empty placeholder method.
+            _cityInfoRepository.UpdatePointOfInterestForCity(cityId, pointOfInterestEntity);
 
             return NoContent(); //Request completed successfully, nothing to return.
         }
