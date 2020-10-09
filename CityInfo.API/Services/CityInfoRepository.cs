@@ -61,6 +61,11 @@ namespace CityInfo.API.Services
             // ghost place holder method as not necessary for EF Core
         }
 
+        public void DeletePointOfInterest(PointOfInterest pointOfInterest)
+        {
+            _context.PointsOfInterest.Remove(pointOfInterest);
+        }
+
         public bool Save()
         {
             return (_context.SaveChanges() >= 0);
