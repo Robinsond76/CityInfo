@@ -145,27 +145,26 @@ namespace CityInfo.API.Controllers
         public IActionResult PartiallyUpdatePointOfInterest(int cityId, int id,
             [FromBody] JsonPatchDocument<PointOfInterestForUpdateDto> patchDoc)
         {
-            //Find the city
-            var city = CitiesDataStore.Current.Cities
-                .FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //if city not found, return 404
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
 
             //Find Point of Interest
-            var pointOfInterestFromStore = city.PointsOfInterest
-                .FirstOrDefault(p => p.Id == id);
-            if (pointOfInterestFromStore == null)
+            var pointOfInterestEntity = _cityInfoRepository
+                .GetPointOfInterestForCity(cityId, id);
+            if (pointOfInterestEntity == null)
+            {
                 return NotFound();
+            }
 
-            var pointOfInterestToPatch =
-                new PointOfInterestForUpdateDto()
-                {
-                    Name = pointOfInterestFromStore.Name,
-                    Description = pointOfInterestFromStore.Description
-                };
+            //Map entity to same DTO as the patchDoc
+            var pointOfInterestToPatch = _mapper
+                .Map<PointOfInterestForUpdateDto>(pointOfInterestEntity);
 
+            //Apply patchDoc to newly converted entity
             patchDoc.ApplyTo(pointOfInterestToPatch, ModelState);
 
+            //checks if the patch request is a valid patch model
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -177,13 +176,19 @@ namespace CityInfo.API.Controllers
                     "The provided description should be different from the name.");
             }
 
+            //checks if the newly patched POI Dto is a valid model
             if (!TryValidateModel(pointOfInterestToPatch))
             {
                 return BadRequest(ModelState);
             }
 
-            pointOfInterestFromStore.Name = pointOfInterestToPatch.Name;
-            pointOfInterestFromStore.Description = pointOfInterestToPatch.Description;
+            //map the patched DTO back to the entity
+            _mapper.Map(pointOfInterestToPatch, pointOfInterestEntity);
+
+            //mock method for good practice, see more info on PUT update() method above
+            _cityInfoRepository.UpdatePointOfInterestForCity(cityId, pointOfInterestEntity);
+
+            _cityInfoRepository.Save();
 
             return NoContent();
         }
